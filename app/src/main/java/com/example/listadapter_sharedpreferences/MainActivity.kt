@@ -2,6 +2,7 @@ package com.example.listadapter_sharedpreferences
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.Menu
 import android.widget.Button
 import android.widget.EditText
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -20,18 +21,20 @@ private var contacts : ArrayList<Contact> = ArrayList<Contact>()
 private var editableContacts : ArrayList<Contact> = ArrayList<Contact>()
 
 class MainActivity : AppCompatActivity() {
-    public lateinit var RView : RecyclerView
+    lateinit var RView : RecyclerView
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        // Создаем акшн бар
+        setSupportActionBar(findViewById(R.id.toolbar));
+        getSupportActionBar()?.setDisplayShowTitleEnabled(false);
+        val txtFromToolbar: EditText = findViewById<EditText>(R.id.et_search);
 
         Timber.plant(Timber.DebugTree())
 
         RView = findViewById<RecyclerView>(R.id.r_view);
         RView.layoutManager = LinearLayoutManager(this)
-
-        val btn: Button = findViewById<Button>(R.id.btn_search);
-        val editText: EditText = findViewById<EditText>(R.id.search_edit);
 
         CoroutineScope(Dispatchers.IO).launch {
             var text: String = "";
@@ -51,18 +54,22 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
 
-        btn.setOnClickListener{
-            val line: String = editText.text.toString()
-            if (line != ""){
-                editableContacts = contacts.filter { it.name.contains(line) ||
-                        it.type.contains(line) ||
-                        it.phone.contains(line) } as ArrayList<Contact>;
-            } else{
-                editableContacts = contacts.clone() as ArrayList<Contact>;
-            }
-            RView.adapter = CardAdapter(editableContacts);
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.search_toolbar, menu)
+        return true
+    }
+
+    fun updateRView(line: String){
+        if (line != ""){
+            editableContacts = contacts.filter { it.name.contains(line) ||
+                    it.type.contains(line) ||
+                    it.phone.contains(line) } as ArrayList<Contact>;
+        } else{
+            editableContacts = contacts.clone() as ArrayList<Contact>;
         }
+        RView.adapter = CardAdapter(editableContacts);
     }
 }
 
