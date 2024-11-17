@@ -1,21 +1,23 @@
 package com.example.listadapter_sharedpreferences
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
-import android.widget.Button
-import android.widget.EditText
+import android.widget.SearchView
+import android.widget.SearchView.OnQueryTextListener
+import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.Gson
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.net.HttpURLConnection
 import java.net.URL
+
 
 private var contacts : ArrayList<Contact> = ArrayList<Contact>()
 private var editableContacts : ArrayList<Contact> = ArrayList<Contact>()
@@ -26,10 +28,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Создаем акшн бар
+        // Привязываем акшн бар
         setSupportActionBar(findViewById(R.id.toolbar));
-        getSupportActionBar()?.setDisplayShowTitleEnabled(false);
-        val txtFromToolbar: EditText = findViewById<EditText>(R.id.et_search);
+        getSupportActionBar()?.setDisplayShowTitleEnabled(true);
 
         Timber.plant(Timber.DebugTree())
 
@@ -58,6 +59,20 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.search_toolbar, menu)
+        val menuItem = menu.findItem(R.id.et_search)
+        val search: SearchView = menuItem.actionView as SearchView
+
+        search.setOnQueryTextListener(object : OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String): Boolean {
+                updateRView(newText)
+                return true
+            }
+        })
+
         return true
     }
 
