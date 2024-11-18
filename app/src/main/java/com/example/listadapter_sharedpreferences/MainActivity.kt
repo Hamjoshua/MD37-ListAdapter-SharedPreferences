@@ -8,6 +8,7 @@ import android.widget.SearchView.OnQueryTextListener
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -25,6 +26,7 @@ private var editableContacts : ArrayList<Contact> = ArrayList<Contact>()
 
 class MainActivity : AppCompatActivity() {
     lateinit var RView : RecyclerView
+    lateinit var adapter : ListAdapter<Contact, CardViewHolder>
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -48,11 +50,12 @@ class MainActivity : AppCompatActivity() {
             val gson = Gson();
             val itemType = object : TypeToken<ArrayList<Contact>>() {}.type
             contacts = gson.fromJson<ArrayList<Contact>>(text, itemType);
-            editableContacts = contacts.clone() as ArrayList<Contact>
 
             withContext(Dispatchers.Main) {
                 if(RView.context != null){
-                    RView.adapter = CardAdapter(editableContacts);
+                    adapter = CardAdapter(editableContacts);
+                    adapter.submitList(contacts.toMutableList());
+                    RView.adapter = adapter;
                 }
             }
         }
@@ -81,11 +84,11 @@ class MainActivity : AppCompatActivity() {
         if (line != ""){
             editableContacts = contacts.filter { it.name.contains(line) ||
                     it.type.contains(line) ||
-                    it.phone.contains(line) } as ArrayList<Contact>;
+                    it.phone.contains(line) } as ArrayList<Contact>
         } else{
-            editableContacts = contacts.clone() as ArrayList<Contact>;
+            editableContacts = contacts.clone() as ArrayList<Contact>
         }
-        RView.adapter = CardAdapter(editableContacts);
+        adapter.submitList(editableContacts.toMutableList())
     }
 }
 
