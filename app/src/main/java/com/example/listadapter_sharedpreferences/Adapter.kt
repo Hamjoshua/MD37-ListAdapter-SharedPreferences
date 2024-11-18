@@ -13,17 +13,18 @@ class CardViewHolder(view: View) : RecyclerView.ViewHolder(view){
     val typeView : TextView = view.findViewById<TextView>(R.id.r_type);
 }
 
-class CardAdapter(private var list: ArrayList<Contact>) : RecyclerView.Adapter<CardViewHolder>() {
+class CardAdapter(private var list: ArrayList<Contact>) :
+    androidx.recyclerview.widget.ListAdapter<Contact, CardViewHolder>(ContactDiffCallback()) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CardViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.r_item,
             parent, false);
         return CardViewHolder(view);
     }
 
-    override fun getItemCount() = list.size
+    override fun getItemCount() = currentList.size
 
     override fun onBindViewHolder(holder: CardViewHolder, position: Int) {
-        val contact = list[position];
+        val contact = currentList[position];
         holder.nameView.setText(contact.name);
         holder.phoneView.setText(contact.phone);
         holder.typeView.setText(contact.type);
