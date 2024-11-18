@@ -16,7 +16,7 @@ class CardViewHolder(view: View) : RecyclerView.ViewHolder(view){
     val typeView : TextView = view.findViewById<TextView>(R.id.r_type);
 }
 
-class CardAdapter(private var list: ArrayList<Contact>) :
+class CardAdapter() :
     androidx.recyclerview.widget.ListAdapter<Contact, CardViewHolder>(ContactDiffCallback()) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CardViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.r_item,
