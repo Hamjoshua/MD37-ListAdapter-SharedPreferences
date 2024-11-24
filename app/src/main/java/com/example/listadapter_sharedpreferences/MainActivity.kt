@@ -1,34 +1,26 @@
 package com.example.listadapter_sharedpreferences
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.view.Menu
 import android.widget.EditText
-import android.widget.SearchView
-import android.widget.SearchView.OnQueryTextListener
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.widget.addTextChangedListener
-import androidx.core.widget.doAfterTextChanged
+import androidx.core.content.ContextCompat
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -41,7 +33,7 @@ private var editableContacts: ArrayList<Contact> = ArrayList<Contact>()
 
 class MainActivity : AppCompatActivity() {
     lateinit var RView: RecyclerView
-    lateinit var adapter: ListAdapter<Contact, CardViewHolder>
+    private var adapter = CardAdapter(::goToDial)
     val SEARCH_FILTER = stringPreferencesKey("search_filter")
     val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "app_preferences")
 
@@ -52,7 +44,6 @@ class MainActivity : AppCompatActivity() {
 
         Timber.plant(Timber.DebugTree())
 
-        adapter = CardAdapter();
         RView = findViewById<RecyclerView>(R.id.r_view);
         RView.layoutManager = LinearLayoutManager(this)
 
@@ -86,11 +77,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    suspend fun getValueFromDataStore(): String {
-        val textFlow: Flow<String> = dataStore.data.map { settings ->
-            settings[SEARCH_FILTER].toString();
+    suspend fun getValueFromDataStore(): String? {
+        var result: String? = ""
+        dataStore.edit { settings ->
+            result = settings[SEARCH_FILTER]
         }
-        return textFlow.first();
+
+        return result;
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -100,7 +93,7 @@ class MainActivity : AppCompatActivity() {
         search.width = 300
 
         CoroutineScope(Dispatchers.IO).launch {
-            val text: String = getValueFromDataStore()
+            val text: String = getValueFromDataStore() ?: ""
             search.setText(text);
         }
 
@@ -125,6 +118,12 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
+    fun goToDial(phone: String){
+        val intent = Intent(Intent.ACTION_DIAL)
+        intent.data = Uri.parse("tel:<${phone}>")
+        ContextCompat.startActivity(this, intent, null)
+    }
+
     fun updateRView(line: String) {
         if (line != "") {
             editableContacts = contacts.filter {
@@ -146,12 +145,3 @@ data class Contact(
     val type: String
 )
 
-class ContactDiffCallback : DiffUtil.ItemCallback<Contact>() {
-    override fun areItemsTheSame(oldItem: Contact, newItem: Contact): Boolean {
-        return oldItem.phone == newItem.phone;
-    }
-
-    override fun areContentsTheSame(oldItem: Contact, newItem: Contact): Boolean {
-        return oldItem == newItem;
-    }
-}
